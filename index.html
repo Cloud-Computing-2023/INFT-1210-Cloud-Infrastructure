@@ -11,7 +11,7 @@
 	<div id="header" class="mainHeader">
 	<?php echo '<p>PHP is Installed and Working</p>'; ?>
 		<hr>
-		<div class="center"> Lastname Caf&eacute;</div>
+		<div class="center"> Lopes Caf&eacute;</div>
 	</div>
 	<br>
 	<hr>
@@ -31,7 +31,7 @@
 				</tr>
 			</table>
 			<hr>
-			<p>Lastname caf&eacute; offers an assortment of delicious and delectable pastries and coffees that will put a smile on your face. From cookies to croissants, tarts and cakes, each treat is especially prepared to excite your tastebuds and brighten your day!</p>
+			<p>Lopes caf&eacute; offers an assortment of delicious and delectable pastries and coffees that will put a smile on your face. From cookies to croissants, tarts and cakes, each treat is especially prepared to excite your tastebuds and brighten your day!</p>
 			<br>
 			<table>
 				<tr>
