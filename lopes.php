@@ -34,11 +34,11 @@
 			<br>
 
 		<?php
-		$connection_string = "host=lopes-database-instance-1.cbyi2w2qufh4.us-east-1.rds.amazonaws.com port=5432 dbname=lopesdb user=postgres password=GarrethMy2024";
+		$connection_string = "host=lopes-database-instance-1.cbyi2w2qufh4.us-east-1.rds.amazonaws.com port=5432 dbname=lopesdb user=postgres password=garrethMy2024";
 		$connection = pg_connect($connection_string) or die("Could not connect to the database: " . pg_last_error());
 
 
-		$query = "SELECT * FROM final";
+		$query = "SELECT * FROM employee";
 		$result = pg_query($connection, $query) or die("Error reading data: " . pg_last_error());
 
 		while ($row = pg_fetch_assoc($result)) {
