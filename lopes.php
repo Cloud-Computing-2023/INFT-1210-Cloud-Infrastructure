@@ -42,7 +42,7 @@
 		$result = pg_query($connection, $query) or die("Error reading data: " . pg_last_error());
 
 		while ($row = pg_fetch_assoc($result)) {
-			echo "ID: " . $row['id'] . ", First Name: " . $row['fname'] . ", Last Name: " . $row['lname'] . ", Timestamp: " . $row['created_at'] . "\n";
+			echo "ID: " . $row['id'] . ", First Name: " . $row['fname'] . ", Last Name: " . $row['lname'] . ", Timestamp: " . $row['created_at'] . "\n<br>";
 		}
 
 		?>
