@@ -40,10 +40,13 @@
 
 		$query = "SELECT * FROM employee";
 		$result = pg_query($connection, $query) or die("Error reading data: " . pg_last_error());
-
+        echo "<table border='1'><tr><th>ID</th><th>First Name</th><th>Last Name</th><th>Email</th><th>Position</th><th>Timestamp</th></tr>";
+    
 		while ($row = pg_fetch_assoc($result)) {
-			echo "ID: " . $row['id'] . ", First Name: " . $row['fname'] . ", Last Name: " . $row['lname'] . ", Timestamp: " . $row['created_at'] . "\n<br>";
+            echo "<tr><td>" . $row["id"]. "</td><td>" . $row["fname"]. "</td><td>" . $row["lname"]. "</td><td>" . $row["position"]. "</td><td>" . $row["created_at"]. "</td></tr>";
+    
 		}
+        echo "</table>";
 
 		?>
 		</div>
