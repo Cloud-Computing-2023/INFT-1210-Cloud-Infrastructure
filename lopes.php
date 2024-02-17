@@ -34,7 +34,7 @@
 			<br>
 
 		<?php
-		$connection_string = "host=lopes-database-instance-1.cfwsog6wiv6o.us-east-1.rds.amazonaws.com port=5432 dbname=lopesdb user=postgres password=garrethMy2024";
+		$connection_string = "host=lopes-database-instance-1.cfwsog6wiv6o.us-east-1.rds.amazonaws.com port=5432 dbname=lopesDB user=postgres password=garrethMy2024";
 		$connection = pg_connect($connection_string) or die("Could not connect to the database: " . pg_last_error());
 
 
