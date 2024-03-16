@@ -1,0 +1,261 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Assignment2 Script for Deploying Cafe dynamic application's Network Layer
+Parameters:
+  KeyName:
+    Description: Name of an existing EC2 KeyPair
+    Type: String
+Resources:
+  LopesAssignment2Vpc:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: false
+      Tags:
+        - Key: Name
+          Value: LopesAssignment2Vpc
+  LopesAssignment2IGW:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: LopesAssignment2IGW
+  VPCtoIGWConnection:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    DependsOn:
+      - LopesAssignment2IGW
+      - LopesAssignment2Vpc
+    Properties:
+      InternetGatewayId: !Ref LopesAssignment2IGW
+      VpcId: !Ref LopesAssignment2Vpc
+  LopesAssign2PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    DependsOn: LopesAssignment2Vpc
+    Properties:
+      VpcId: !Ref LopesAssignment2Vpc
+      Tags:
+        - Key: Name
+          Value: LopesAssign2PublicRouteTable
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn:
+      - LopesAssign2PublicRouteTable
+      - VPCtoIGWConnection
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref LopesAssignment2IGW
+      RouteTableId: !Ref LopesAssign2PublicRouteTable
+  LopesAssign2PrivateRouteTable1:
+    Type: 'AWS::EC2::RouteTable'
+    DependsOn: LopesAssignment2Vpc
+    Properties:
+      VpcId: !Ref LopesAssignment2Vpc
+      Tags:
+        - Key: Name
+          Value: LopesAssign2PrivateRouteTable1
+  LopesAssign2PrivateRouteTable2:
+    Type: 'AWS::EC2::RouteTable'
+    DependsOn: LopesAssignment2Vpc
+    Properties:
+      VpcId: !Ref LopesAssignment2Vpc
+      Tags:
+        - Key: Name
+          Value: LopesAssign2PrivateRouteTable2
+  LopesAssign2PublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    DependsOn: LopesAssignment2Vpc
+    Properties:
+      VpcId: !Ref LopesAssignment2Vpc
+      MapPublicIpOnLaunch: false
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs 
+          Ref: 'AWS::Region'
+      Tags:
+        - Key: Name
+          Value: LopesAssign2PublicSubnet1
+  LopesAssign2PublicSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    DependsOn: LopesAssignment2Vpc
+    Properties:
+      VpcId: !Ref LopesAssignment2Vpc
+      MapPublicIpOnLaunch: true
+      CidrBlock: 10.0.4.0/24
+      AvailabilityZone: !Select 
+        - 1
+        - !GetAZs 
+          Ref: 'AWS::Region'
+      Tags:
+        - Key: Name
+          Value: LopesAssign2PublicSubnet2
+  PublicRouteTableAssociation1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    DependsOn:
+      - LopesAssign2PublicRouteTable
+      - LopesAssign2PublicSubnet1
+    Properties:
+      RouteTableId: !Ref LopesAssign2PublicRouteTable
+      SubnetId: !Ref LopesAssign2PublicSubnet1
+  PublicRouteTableAssociation2:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    DependsOn:
+      - LopesAssign2PublicRouteTable
+      - LopesAssign2PublicSubnet2
+    Properties:
+      RouteTableId: !Ref LopesAssign2PublicRouteTable
+      SubnetId: !Ref LopesAssign2PublicSubnet2
+  LopesAssign2PrivateSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    DependsOn: LopesAssignment2Vpc
+    Properties:
+      VpcId: !Ref LopesAssignment2Vpc
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs 
+          Ref: 'AWS::Region'
+      Tags:
+        - Key: Name
+          Value: LopesAssign2PrivateSubnet1
+  LopesAssign2PrivateSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    DependsOn: LopesAssignment2Vpc
+    Properties:
+      VpcId: !Ref LopesAssignment2Vpc
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: !Select 
+        - 1
+        - !GetAZs 
+          Ref: 'AWS::Region'
+      Tags:
+        - Key: Name
+          Value: LopesAssign2PrivateSubnet2
+  LopesAssign2PrivatedbSubnet3:
+    Type: 'AWS::EC2::Subnet'
+    DependsOn: LopesAssignment2Vpc
+    Properties:
+      VpcId: !Ref LopesAssignment2Vpc
+      CidrBlock: 10.0.5.0/24
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs 
+          Ref: 'AWS::Region'
+      Tags:
+        - Key: Name
+          Value: LopesAssign2PrivatedbSubnet3
+  LopesAssign2PrivatedbSubnet4:
+    Type: 'AWS::EC2::Subnet'
+    DependsOn: LopesAssignment2Vpc
+    Properties:
+      VpcId: !Ref LopesAssignment2Vpc
+      CidrBlock: 10.0.7.0/24
+      AvailabilityZone: !Select 
+        - 1
+        - !GetAZs 
+          Ref: 'AWS::Region'
+      Tags:
+        - Key: Name
+          Value: LopesAssign2PrivatedbSubnet4
+  PrivateRouteTableAssociation1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    DependsOn:
+      - LopesAssign2PrivateRouteTable1
+      - LopesAssign2PrivateSubnet1
+    Properties:
+      RouteTableId: !Ref LopesAssign2PrivateRouteTable1
+      SubnetId: !Ref LopesAssign2PrivateSubnet1
+  PrivateRouteTableAssociation2:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    DependsOn:
+      - LopesAssign2PrivateRouteTable1
+      - LopesAssign2PrivatedbSubnet3
+    Properties:
+      RouteTableId: !Ref LopesAssign2PrivateRouteTable1
+      SubnetId: !Ref LopesAssign2PrivatedbSubnet3
+  PrivateRouteTableAssociation3:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    DependsOn:
+      - LopesAssign2PrivateRouteTable2
+      - LopesAssign2PrivateSubnet2
+    Properties:
+      RouteTableId: !Ref LopesAssign2PrivateRouteTable2
+      SubnetId: !Ref LopesAssign2PrivateSubnet2
+  PrivateRouteTableAssociation4:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    DependsOn:
+      - LopesAssign2PrivateRouteTable2
+      - LopesAssign2PrivatedbSubnet4
+    Properties:
+      RouteTableId: !Ref LopesAssign2PrivateRouteTable2
+      SubnetId: !Ref LopesAssign2PrivatedbSubnet4
+  LopesAssign2NATGateway1:
+    DependsOn:
+    - LopesAssign2PrivateSubnet1
+    - LopesAssign2PrivatedbSubnet3
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      SubnetId: !Ref LopesAssign2PublicSubnet1
+      AllocationId: !GetAtt 
+        - NATGatewayEIP1
+        - AllocationId
+  NATGatewayEIP1:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: LopesAssignment2Vpc
+  LopesAssign2NATGateway2:
+    DependsOn: 
+       - LopesAssign2PrivateSubnet2
+       - LopesAssign2PrivatedbSubnet4
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      SubnetId: !Ref LopesAssign2PublicSubnet2
+      AllocationId: !GetAtt 
+        - NATGatewayEIP2
+        - AllocationId
+  NATGatewayEIP2:
+    Type: 'AWS::EC2::EIP'
+    Properties:
+      Domain: LopesAssignment2Vpc
+  NATGatewayRoute1:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref LopesAssign2PrivateRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref LopesAssign2NATGateway1
+  NATGatewayRoute2:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref LopesAssign2PrivateRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref LopesAssign2NATGateway2
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: Assignment2-DB-Subnet-Group
+      DBSubnetGroupName: Assignment2-DB-Subnet-Group
+      SubnetIds:
+        - !Ref LopesAssign2PrivatedbSubnet3
+        - !Ref LopesAssign2PrivatedbSubnet4
+      Tags:
+        - Key: Name
+          Value: DBSubnetGroup
+Outputs:
+  LopesAssign2PublicSubnet1:
+    Value: !Ref LopesAssign2PublicSubnet1
+    Description: LopesAssign2PublicSubnet1
+  LopesAssign2PublicSubnet2:
+    Value: !Ref LopesAssign2PublicSubnet2
+    Description: LopesAssign2PublicSubnet2
+  LopesAssign2PrivateSubnet1:
+    Value: !Ref LopesAssign2PrivateSubnet1
+    Description: LopesAssign2PrivateSubnet1
+  LopesAssign2PrivateSubnet2:
+    Value: !Ref LopesAssign2PrivateSubnet2
+    Description: LopesAssign2PrivateSubnet2
+  LopesAssign2PrivatedbSubnet3:
+    Value: !Ref LopesAssign2PrivatedbSubnet3
+    Description: LopesAssign2PrivatedbSubnet3
+  LopesAssign2PrivatedbSubnet4:
+    Value: !Ref LopesAssign2PrivatedbSubnet4
+    Description: LopesAssign2PrivatedbSubnet4
