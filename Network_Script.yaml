@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Assignment2 Script for Deploying Cafe dynamic application's Network Layer
-Parameters:
-  KeyName:
-    Description: Name of an existing EC2 KeyPair
-    Type: String
+#Parameters:
+  # KeyName:
+    # Description: Name of an existing EC2 KeyPair
+    # Type: String
 Resources:
   LopesAssignment2Vpc:
     Type: 'AWS::EC2::VPC'
@@ -241,21 +241,45 @@ Resources:
         - Key: Name
           Value: DBSubnetGroup
 Outputs:
+  LopesAssignment2Vpc:
+    Value: !Ref LopesAssignment2Vpc
+    Description: LopesAssignment2Vpc
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-LopesAssignment2Vpc'
   LopesAssign2PublicSubnet1:
     Value: !Ref LopesAssign2PublicSubnet1
     Description: LopesAssign2PublicSubnet1
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-LopesAssign2PublicSubnet1'
   LopesAssign2PublicSubnet2:
     Value: !Ref LopesAssign2PublicSubnet2
     Description: LopesAssign2PublicSubnet2
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-LopesAssign2PublicSubnet2'
   LopesAssign2PrivateSubnet1:
     Value: !Ref LopesAssign2PrivateSubnet1
     Description: LopesAssign2PrivateSubnet1
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-LopesAssign2PrivateSubnet1'
   LopesAssign2PrivateSubnet2:
     Value: !Ref LopesAssign2PrivateSubnet2
     Description: LopesAssign2PrivateSubnet2
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-LopesAssign2PrivateSubnet2'
   LopesAssign2PrivatedbSubnet3:
     Value: !Ref LopesAssign2PrivatedbSubnet3
     Description: LopesAssign2PrivatedbSubnet3
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-LopesAssign2PrivatedbSubnet3'
   LopesAssign2PrivatedbSubnet4:
     Value: !Ref LopesAssign2PrivatedbSubnet4
     Description: LopesAssign2PrivatedbSubnet4
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-LopesAssign2PrivatedbSubnet4'

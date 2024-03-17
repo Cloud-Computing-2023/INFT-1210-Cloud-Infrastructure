@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Assignment2 Script for Deploying Cafe dynamic application's app Layer
+
+Parameters:
+
+  NetworkStackName:
+    Description: Name of network stack
+    Type: String
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: '^[a-zA-Z][-a-zA-Z0-9]*$'
+    Default: assign2-network-stack
+
+  AmazonLinuxAMIID:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair
+    Type: String
+    Default: lopes-key
+
+  LaunchTemplateId:
+    Type: String
+    Description: ID of the Launch Template to be used by the Auto Scaling Group
+      
+Resources:
+
+  LopesAssign2BastionHost:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      ImageId: !Ref AmazonLinuxAMIID
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          DeleteOnTermination: true
+          GroupSet:
+            - !Ref BastionSecurityGroup
+          SubnetId: !ImportValue
+            Fn::Sub: "${NetworkStackName}-LopesAssign2PublicSubnet1"
+      Tags:
+        - Key: Name
+          Value: LopesAssign2BastionHost
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash -xe
+          sudo yum install -y httpd php php-pgsql git
+          sudo git clone https://github.com/Cloud-Computing-2023/INFT-1210-Cloud-Infrastructure.git /var/www/html
+          sudo systemctl enable httpd
+          sudo systemctl start httpd
+
+  DiskVolume:
+    Type: AWS::EC2::Volume
+    Properties:
+      Size: 100
+      AvailabilityZone: !GetAtt LopesAssign2BastionHost.AvailabilityZone
+      Tags:
+        - Key: Name
+          Value: WebData
+    DeletionPolicy: Snapshot
+
+  DiskMountPoint:
+    Type: AWS::EC2::VolumeAttachment
+    Properties:
+      InstanceId: !Ref LopesAssign2BastionHost
+      VolumeId: !Ref DiskVolume
+      Device: /dev/sdh
+
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP ingress and SSH
+      VpcId: !ImportValue
+        Fn::Sub: "${NetworkStackName}-LopesAssignment2Vpc"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: BastionHostSecurityGroup
+
+Outputs:
+  URL:
+    Description: URL of the Cafe website
+    Value: !Sub 'http://${LopesAssign2BastionHost.PublicIp}'
+  BastionSecurityGroup:
+    Value: !GetAtt LopesAssign2BastionHost.PublicIp
+    Description: BastionSecurityGroupIP
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-BastionSecurityGroupPublicIp'
