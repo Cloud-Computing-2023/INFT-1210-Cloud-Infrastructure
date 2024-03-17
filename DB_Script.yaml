@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Assignment2 Script for Deploying Cafe dynamic application's database Layer
+Parameters:
+  NetworkStackName:
+    Description: Name of network stack
+    Type: String
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: '^[a-zA-Z][-a-zA-Z0-9]*$'
+    Default: assign2-network-stack
+  AppStackName:
+    Description: Name of Application stack
+    Type: String
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: '^[a-zA-Z][-a-zA-Z0-9]*$'
+    Default: assign2-app-stack
+  KeyName:
+    Description: Name of an existing EC2 KeyPair
+    Type: String
+    Default: lopes-key
+  DBInstanceType:
+    Type: String
+    Default: db.t3.medium
+Resources:
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for Aurora DB
+      SubnetIds: 
+        - !ImportValue 
+          Fn::Sub: "${NetworkStackName}-LopesAssign2PrivatedbSubnet3"
+        - !ImportValue 
+          Fn::Sub: "${NetworkStackName}-LopesAssign2PrivatedbSubnet4"
+      Tags:
+        - Key: Name
+          Value: DBSubnetGroup
+
+  AuroraDBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      EngineMode: provisioned
+      MasterUsername: postgres
+      MasterUserPassword: postgres
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      DatabaseName: lopesdatabase
+      BackupRetentionPeriod: 35
+      Port: 5432
+      NetworkType: IPv4
+      DBClusterIdentifier: lopesauroradbcluster
+      VpcSecurityGroupIds:
+        - !Ref AuroraDBSecurityGroup
+      # AvailabilityZones: 
+      #   - !Select [0, !GetAZs !Ref "AWS::Region"]
+      #   - !Select [1, !GetAZs !Ref "AWS::Region"]
+      Tags:
+        - Key: Name
+          Value: MyAuroraDBCluster
+
+  AuroraDBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: !Ref DBInstanceType
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref AuroraDBCluster
+
+  AuroraDBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Aurora DB
+      VpcId: !ImportValue
+        Fn::Sub: "${NetworkStackName}-LopesAssignment2Vpc"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !ImportValue
+            Fn::Sub: "${AppStackName}-BastionHostSecurityGroup"
+
+  AuroraDBClusterReadReplica:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: !Ref DBInstanceType
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref AuroraDBCluster
+      Tags:
+        - Key: Name
+          Value: LopesAuroraDBClusterReadReplica
+Outputs:
+  InstanceId:
+    Description: InstanceId of the newly created RDS Instance
+    Value: !GetAtt AuroraDBCluster.Endpoint.Address
