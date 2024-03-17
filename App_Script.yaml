@@ -2,7 +2,6 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Assignment2 Script for Deploying Cafe dynamic application's app Layer
 
 Parameters:
-
   NetworkStackName:
     Description: Name of network stack
     Type: String
@@ -20,9 +19,9 @@ Parameters:
     Type: String
     Default: lopes-key
 
-  LaunchTemplateId:
-    Type: String
-    Description: ID of the Launch Template to be used by the Auto Scaling Group
+  # LaunchTemplateId:
+  #   Type: String
+  #   Description: ID of the Launch Template to be used by the Auto Scaling Group
       
 Resources:
 
@@ -91,9 +90,15 @@ Outputs:
   URL:
     Description: URL of the Cafe website
     Value: !Sub 'http://${LopesAssign2BastionHost.PublicIp}'
-  BastionSecurityGroup:
+  BastionHostIP:
     Value: !GetAtt LopesAssign2BastionHost.PublicIp
-    Description: BastionSecurityGroupIP
+    Description: BastionHostIP
     Export:
       Name:
-        'Fn::Sub': '${AWS::StackName}-BastionSecurityGroupPublicIp'
+        'Fn::Sub': '${AWS::StackName}-BastionHostIP'
+  BastionHostSecurityGroup:
+    Value: !Ref BastionSecurityGroup
+    Description: BastionHostSecurityGroup ID
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-BastionHostSecurityGroup'

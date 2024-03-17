@@ -229,17 +229,6 @@ Resources:
       RouteTableId: !Ref LopesAssign2PrivateRouteTable2
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref LopesAssign2NATGateway2
-  DBSubnetGroup:
-    Type: 'AWS::RDS::DBSubnetGroup'
-    Properties:
-      DBSubnetGroupDescription: Assignment2-DB-Subnet-Group
-      DBSubnetGroupName: Assignment2-DB-Subnet-Group
-      SubnetIds:
-        - !Ref LopesAssign2PrivatedbSubnet3
-        - !Ref LopesAssign2PrivatedbSubnet4
-      Tags:
-        - Key: Name
-          Value: DBSubnetGroup
 Outputs:
   LopesAssignment2Vpc:
     Value: !Ref LopesAssignment2Vpc

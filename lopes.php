@@ -10,7 +10,7 @@
 
 	<div id="header" class="mainHeader">
 		<hr>
-		<div class="center"> Lopes Caf&eacute;</div>
+		<div class="center"> Viviana Lopes Caf&eacute;</div>
 	</div>
 	<br>
 	<hr>
@@ -34,7 +34,7 @@
 			<br>
 
 		<?php
-		$connection_string = "host=lopes-database-instance-1.cfwsog6wiv6o.us-east-1.rds.amazonaws.com port=5432 dbname=lopesDB user=postgres password=garrethMy2024";
+		$connection_string = "host=lopesauroradbcluster.cluster-cfwsog6wiv6o.us-east-1.rds.amazonaws.com port=5432 dbname=lopesdatabase user=postgres password=postgres";
 		$connection = pg_connect($connection_string) or die("Could not connect to the database: " . pg_last_error());
 
 
