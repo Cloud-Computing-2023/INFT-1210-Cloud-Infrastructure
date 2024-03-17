@@ -34,7 +34,8 @@
 			<br>
 
 		<?php
-		$connection_string = "host=lopesauroradbcluster.cluster-cfwsog6wiv6o.us-east-1.rds.amazonaws.com port=5432 dbname=lopesdatabase user=postgres password=postgres";
+		# $connection_string = "host=lopesauroradbcluster.cluster-cfwsog6wiv6o.us-east-1.rds.amazonaws.com port=5432 dbname=lopesdatabase user=postgres password=postgres";
+		$connection_string = "host=localhost port=5432 dbname=lopesdatabase user=postgres password=postgres";
 		$connection = pg_connect($connection_string) or die("Could not connect to the database: " . pg_last_error());
 
 
