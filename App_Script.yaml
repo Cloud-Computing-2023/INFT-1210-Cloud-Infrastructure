@@ -18,10 +18,21 @@ Parameters:
     Description: Name of an existing EC2 KeyPair
     Type: String
     Default: lopes-key
+  
+  LaunchTemplateId:
+    Type: String
+    Description: 'Enter the Launch Template ID'
+    Default: 'lt-0771cbbf2a33a7ecb'
 
-  # LaunchTemplateId:
-  #   Type: String
-  #   Description: ID of the Launch Template to be used by the Auto Scaling Group
+  Region:
+    Description: AWS Region where resources will be created
+    Type: String
+    Default: us-east-1
+
+  AccountId:
+    Description: AWS Account ID
+    Type: String
+    Default: '211125382553' 
       
 Resources:
 
@@ -45,27 +56,32 @@ Resources:
       UserData:
         Fn::Base64: |
           #!/bin/bash -xe
-          sudo yum install -y httpd php php-pgsql git
+          sudo yum install -y httpd php php-pgsql git postgresql postgresql-server postgresql-contrib
           sudo git clone https://github.com/Cloud-Computing-2023/INFT-1210-Cloud-Infrastructure.git /var/www/html
+          sudo postgresql-setup initdb
+          sudo systemctl start postgresql
+          sudo systemctl enable postgresql
+          sudo -u postgres psql -c "CREATE DATABASE lopesdatabase;"
+          sudo -u postgres psql -d lopesdatabase -c "CREATE TABLE employee (id SERIAL PRIMARY KEY, fname VARCHAR NOT NULL, lname VARCHAR NOT NULL,position VARCHAR ,created_at TIMESTAMPTZ DEFAULT Now());"
+          sudo -u postgres psql -d lopesdatabase -c "INSERT INTO employee (fname,lname) VALUES ('Gwyneth','Lopes'),('Garreth','Lopes'),('Ezra','Lopes'),('Aziel','Lopes'),('Dwayne','Lopes');"
           sudo systemctl enable httpd
           sudo systemctl start httpd
 
-  DiskVolume:
-    Type: AWS::EC2::Volume
+  
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties:
-      Size: 100
-      AvailabilityZone: !GetAtt LopesAssign2BastionHost.AvailabilityZone
+      GroupDescription: Enable HTTP ingress and SSH
+      VpcId: !ImportValue
+        Fn::Sub: "${NetworkStackName}-LopesAssignment2Vpc"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: WebData
-    DeletionPolicy: Snapshot
-
-  DiskMountPoint:
-    Type: AWS::EC2::VolumeAttachment
-    Properties:
-      InstanceId: !Ref LopesAssign2BastionHost
-      VolumeId: !Ref DiskVolume
-      Device: /dev/sdh
+          Value: LoadBalancerSecurityGroup
 
   BastionSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -77,7 +93,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIp: 0.0.0.0/0
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
@@ -102,3 +118,9 @@ Outputs:
     Export:
       Name:
         'Fn::Sub': '${AWS::StackName}-BastionHostSecurityGroup'
+  LoadBalancerSecurityGroup:
+    Value: !Ref LoadBalancerSecurityGroup
+    Description: LoadBalancerSecurityGroup ID
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-LoadBalancerSecurityGroup'

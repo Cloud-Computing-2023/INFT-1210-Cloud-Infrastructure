@@ -1,9 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Assignment2 Script for Deploying Cafe dynamic application's Network Layer
-#Parameters:
-  # KeyName:
-    # Description: Name of an existing EC2 KeyPair
-    # Type: String
 Resources:
   LopesAssignment2Vpc:
     Type: 'AWS::EC2::VPC'

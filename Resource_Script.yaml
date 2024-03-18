@@ -1,0 +1,158 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Assignment2 Script for Deploying Cafe dynamic application's app Layer
+
+Parameters:
+  NetworkStackName:
+    Description: Name of network stack
+    Type: String
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: '^[a-zA-Z][-a-zA-Z0-9]*$'
+    Default: assign2-network-stack
+  
+  AppStackName:
+    Description: Name of Application stack
+    Type: String
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: '^[a-zA-Z][-a-zA-Z0-9]*$'
+    Default: assign2-app-stack
+
+  AmazonLinuxAMIID:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+
+  KeyName:
+    Description: Name of an existing EC2 KeyPair
+    Type: String
+    Default: lopes-key
+
+  Region:
+    Description: AWS Region where resources will be created
+    Type: String
+    Default: us-east-1
+
+  AccountId:
+    Description: AWS Account ID
+    Type: String
+    Default: '211125382553' 
+
+  AMIId:
+    Type: String
+    Description: 'Enter the ID of the AMI to use for the instance'
+    Default: ami-019f1c88922d04ba5
+      
+Resources:
+
+  LopesAutoscalingGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    DependsOn: LopesLaunchTemplate
+    Properties: 
+      LaunchTemplate:
+       LaunchTemplateId: !Ref LopesLaunchTemplate
+       Version: "1"
+      # LoadBalancerNames:
+      DesiredCapacity: 2
+      MaxSize: 4
+      MinSize: 2
+      VPCZoneIdentifier: 
+        - !ImportValue 
+          Fn::Sub: "${NetworkStackName}-LopesAssign2PrivateSubnet1"
+        - !ImportValue 
+          Fn::Sub: "${NetworkStackName}-LopesAssign2PrivateSubnet2"
+      TargetGroupARNs: 
+        - !Ref LopesTargetGroup
+      Tags:
+        - Key: Name
+          Value: AutoLaunchedInstances
+          PropagateAtLaunch: true
+      
+
+  LopesLaunchTemplate:
+    Type: 'AWS::EC2::LaunchTemplate'
+    Properties:
+      LaunchTemplateName: LopesLaunchTemplate1
+      LaunchTemplateData:
+        ImageId: !Ref AMIId
+        InstanceType: t2.micro
+        SecurityGroupIds: 
+         - !ImportValue
+           Fn::Sub: "${AppStackName}-BastionHostSecurityGroup"
+        UserData:
+          Fn::Base64: |
+            #!/bin/bash -xe
+            sudo yum install -y httpd php php-pgsql git postgresql postgresql-server postgresql-contrib
+            sudo git clone https://github.com/Cloud-Computing-2023/INFT-1210-Cloud-Infrastructure.git /var/www/html
+            sudo postgresql-setup initdb
+            sudo systemctl start postgresql
+            sudo systemctl enable postgresql
+            sudo -u postgres psql -c "CREATE DATABASE lopesdatabase;"
+            sudo -u postgres psql -d lopesdatabase -c "CREATE TABLE employee (id SERIAL PRIMARY KEY, fname VARCHAR NOT NULL, lname VARCHAR NOT NULL,position VARCHAR ,created_at TIMESTAMPTZ DEFAULT Now());"
+            sudo -u postgres psql -d lopesdatabase -c "INSERT INTO employee (fname,lname) VALUES ('Gwyneth','Lopes'),('Garreth','Lopes'),('Ezra','Lopes'),('Aziel','Lopes'),('Dwayne','Lopes');"
+            sudo systemctl enable httpd
+            sudo systemctl start httpd
+  
+  LopesTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: LopesTargetGroup
+      Protocol: HTTP
+      Port: 80
+      VpcId: !ImportValue
+        Fn::Sub: "${NetworkStackName}-LopesAssignment2Vpc"
+      TargetType: instance
+      HealthCheckEnabled: true
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: traffic-port
+      HealthCheckPath: /health
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200
+
+  LopesLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      LoadBalancerName: LopesLoadBalancer
+      Scheme: internet-facing
+      Subnets:
+        - !ImportValue 
+          Fn::Sub: "${NetworkStackName}-LopesAssign2PublicSubnet1"
+        - !ImportValue 
+          Fn::Sub: "${NetworkStackName}-LopesAssign2PublicSubnet2"
+      SecurityGroups:
+        - !ImportValue
+            Fn::Sub: "${AppStackName}-LoadBalancerSecurityGroup"
+      Tags:
+        - Key: Name
+          Value: LopesLoadBalancer
+
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref LopesTargetGroup
+      LoadBalancerArn: !Ref LopesLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  ListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref LopesTargetGroup
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - '/*'
+      ListenerArn: !Ref HTTPListener
+      Priority: 1
+
+Outputs:
+  LopesLoadBalancer:
+    Description: DNS name of the Lopes Load Balancer
+    Value: !GetAtt LopesLoadBalancer.DNSName
